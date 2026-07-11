@@ -8,11 +8,14 @@ import SurvivalChecklist from './components/SurvivalChecklist';
 import TravelAdvisory from './components/TravelAdvisory';
 import RescueCentersMap from './components/RescueCentersMap';
 import { ShieldCheck } from 'lucide-react';
+import { TRANSLATIONS } from './services/translationService';
 
 export default function App() {
   const [lightMode, setLightMode] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('English');
   const [activeHazards, setActiveHazards] = useState([]);
+
+  const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.English;
 
   const toggleTheme = () => {
     setLightMode(prev => !prev);
@@ -101,13 +104,13 @@ export default function App() {
           <div className="flex items-center space-x-2">
             <ShieldCheck className="h-5 w-5 text-emerald-500" />
             <span className="text-xs">
-              MonsoonGuard Dashboard &copy; 2026. All rights reserved.
+              {t.allRightsReserved}
             </span>
           </div>
           <div className="flex items-center space-x-4 text-xs font-semibold">
-            <a href="#about" className="hover:underline">About</a>
-            <a href="#guidelines" className="hover:underline">Safety Guidelines</a>
-            <a href="#disclaimer" className="hover:underline">Emergency Disclaimer</a>
+            <a href="#about" className="hover:underline">{t.about}</a>
+            <a href="#guidelines" className="hover:underline">{t.safetyGuidelines}</a>
+            <a href="#disclaimer" className="hover:underline">{t.emergencyDisclaimer}</a>
           </div>
         </div>
       </footer>

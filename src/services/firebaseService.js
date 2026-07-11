@@ -119,7 +119,7 @@ export function initializeApp(config) {
 /**
  * Standard Firebase SDK getFirestore Structure
  */
-export function getFirestore(app) {
+export function getFirestore(_app) {
   return dbInstance;
 }
 

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ListChecks, Sparkles, Loader, CheckSquare, Square } from 'lucide-react';
 import { generateSurvivalChecklist } from '../services/geminiService';
+import { TRANSLATIONS } from '../services/translationService';
 
 export default function SurvivalChecklist({ currentLanguage, lightMode }) {
   const [familySize, setFamilySize] = useState(2);
@@ -9,12 +10,11 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
   const [checklist, setChecklist] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Generate initial checklist on component mount
-  useEffect(() => {
-    handleGenerate(true); // silent fetch on mount
-  }, [currentLanguage]);
+  const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.English;
 
-  const handleGenerate = async (silent = false) => {
+
+
+  const handleGenerate = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     try {
       const data = await generateSurvivalChecklist({
@@ -29,7 +29,12 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
     } finally {
       if (!silent) setLoading(false);
     }
-  };
+  }, [familySize, hasPets, hasSpecialNeeds, currentLanguage]);
+
+  // Generate initial checklist on component mount
+  useEffect(() => {
+    handleGenerate(true); // silent fetch on mount
+  }, [currentLanguage, handleGenerate]);
 
   const handleToggleItem = (categoryIndex, itemIndex) => {
     setChecklist(prevChecklist => {
@@ -65,6 +70,16 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
     return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
   };
 
+  const getPersonLabel = (count) => {
+    if (currentLanguage === 'Kannada') {
+      return count === 1 ? 'ವ್ಯಕ್ತಿ' : 'ಜನರು';
+    }
+    if (currentLanguage === 'Hindi') {
+      return count === 1 ? 'व्यक्ति' : 'लोग';
+    }
+    return count === 1 ? 'Person' : 'People';
+  };
+
   return (
     <section 
       className={`p-5 transition-all duration-300 ${
@@ -82,8 +97,8 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
             lightMode ? 'text-slate-800' : 'text-slate-100'
           }`}
         >
-          <ListChecks className="h-5 w-5 text-blue-550" />
-          {currentLanguage === 'Kannada' ? 'ಕಸ್ಟಮೈಸ್ ಮಾಡಿದ ಬದುಕುಳಿಯುವ ಪರಿಶೀಲನಾ ಪಟ್ಟಿ' : currentLanguage === 'Hindi' ? 'अनुकूलित जीवन रक्षा चेकलिस्ट' : 'GenAI Survival Checklist'}
+          <ListChecks className="h-5 w-5 text-blue-555" />
+          {t.checklistTitle}
         </h2>
         <span className={`text-xs flex items-center gap-1 font-bold ${
           lightMode ? 'text-blue-600' : 'text-blue-400'
@@ -105,7 +120,7 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
               htmlFor="family-size" 
               className={`block text-xs font-semibold mb-1 ${lightMode ? 'text-slate-500' : 'text-slate-400'}`}
             >
-              {currentLanguage === 'Kannada' ? 'ಕುಟುಂಬದ ಸದಸ್ಯರು:' : currentLanguage === 'Hindi' ? 'परिवार के सदस्य:' : 'Family Size:'}
+              {t.familySizeLabel}
             </label>
             <select
               id="family-size"
@@ -118,7 +133,7 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
               }`}
             >
               {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-                <option key={n} value={n}>{n} {n === 1 ? 'Person' : 'People'}</option>
+                <option key={n} value={n}>{n} {getPersonLabel(n)}</option>
               ))}
             </select>
           </div>
@@ -136,7 +151,7 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
               htmlFor="pets-checkbox" 
               className={`text-xs font-semibold select-none cursor-pointer ${lightMode ? 'text-slate-650' : 'text-slate-350'}`}
             >
-              {currentLanguage === 'Kannada' ? 'ಸಾಕುಪ್ರಾಣಿಗಳು ಇವೆ' : currentLanguage === 'Hindi' ? 'पालतू जानवर हैं' : 'Include Pets'}
+              {t.includePetsLabel}
             </label>
           </div>
 
@@ -153,7 +168,7 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
               htmlFor="special-needs-checkbox" 
               className={`text-xs font-semibold select-none cursor-pointer ${lightMode ? 'text-slate-650' : 'text-slate-350'}`}
             >
-              {currentLanguage === 'Kannada' ? 'ವಿಶೇಷ ಅಗತ್ಯತೆಗಳು' : currentLanguage === 'Hindi' ? 'विशेष आवश्यकताएं' : 'Special Medical Needs'}
+              {t.specialNeedsLabel}
             </label>
           </div>
 
@@ -172,12 +187,12 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
           {loading ? (
             <>
               <Loader className="h-3.5 w-3.5 animate-spin" />
-              <span>{currentLanguage === 'Kannada' ? 'ರಚಿಸಲಾಗುತ್ತಿದೆ...' : currentLanguage === 'Hindi' ? 'तैयार किया जा रहा है...' : 'Generating...'}</span>
+              <span>{t.checklistGenerating}</span>
             </>
           ) : (
             <>
               <Sparkles className="h-3.5 w-3.5" />
-              <span>{currentLanguage === 'Kannada' ? 'ಪರಿಶೀಲನಾ ಪಟ್ಟಿ ನವೀಕರಿಸಿ' : currentLanguage === 'Hindi' ? 'चेकलिस्ट अपडेट करें' : 'Update Checklist'}</span>
+              <span>{t.btnUpdateChecklist}</span>
             </>
           )}
         </button>
@@ -187,7 +202,7 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
       {totalItems > 0 && (
         <div className="mb-4 space-y-1.5">
           <div className="flex justify-between text-xs font-semibold">
-            <span>{currentLanguage === 'Kannada' ? 'ಪೂರ್ಣಗೊಂಡಿದೆ' : currentLanguage === 'Hindi' ? 'तैयारी की प्रगति' : 'Preparedness Progress'}</span>
+            <span>{t.checklistPreparednessProgress}</span>
             <span>{completedItems}/{totalItems} ({completionPercentage}%)</span>
           </div>
           <div 
@@ -215,7 +230,7 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
         {loading && checklist.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-slate-500">
             <Loader className="h-8 w-8 animate-spin text-blue-500 mb-2" />
-            <p className="text-xs">Generating your personalized disaster preparedness items...</p>
+            <p className="text-xs">{t.checklistLoadingMessage}</p>
           </div>
         ) : (
           checklist.map((cat, catIdx) => (
@@ -258,7 +273,7 @@ export default function SurvivalChecklist({ currentLanguage, lightMode }) {
                         {item.text}
                       </span>
                       <span className={`ml-2 text-xxs px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${getPriorityBadgeClass(item.priority)}`}>
-                        {item.priority}
+                        {t.severities[item.priority] || item.priority}
                       </span>
                     </div>
                   </li>

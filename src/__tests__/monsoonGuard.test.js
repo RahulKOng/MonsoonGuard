@@ -1,6 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
-import { sanitizeInput } from '../components/HazardReporter';
-import { initializeApp, getFirestore, collection, addDoc, onSnapshot } from '../services/firebaseService';
+import { describe, it, expect } from 'vitest';
+import { sanitizeInput } from '../utils/utils';
+import { getFirestore, collection, addDoc, onSnapshot } from '../services/firebaseService';
+import { TRANSLATIONS } from '../services/translationService';
+import { generateTravelAdvisory, generateSurvivalChecklist } from '../services/geminiService';
 
 describe('MonsoonGuard Defensive Practices & Input Sanitization', () => {
   it('should remove raw script tags from input to prevent basic script injection', () => {
@@ -68,7 +70,7 @@ describe('MonsoonGuard Firebase Live Synchronization State', () => {
     });
 
     // Add dummy document to trigger
-    const newDoc = db.add({
+    db.add({
       type: 'Fallen Tree',
       location: 'Test Road',
       description: 'Test tree fall',
@@ -110,5 +112,115 @@ describe('MonsoonGuard Survival Checklist Calculation logic', () => {
     // Toggle again
     activeList = toggleChecked(activeList, 0, 0);
     expect(activeList[0].items[0].checked).toBe(false);
+  });
+});
+
+describe('MonsoonGuard Translation Service Dictionary Integrity', () => {
+  it('should contain matching keys for all three languages', () => {
+    const languages = ['English', 'Kannada', 'Hindi'];
+    languages.forEach(lang => {
+      const dict = TRANSLATIONS[lang];
+      expect(dict).toBeDefined();
+      expect(dict.weatherFloodTitle).toBeDefined();
+      expect(dict.shelterMapTitle).toBeDefined();
+      expect(dict.reportHazardTitle).toBeDefined();
+      expect(dict.liveCitizenReports).toBeDefined();
+      expect(dict.checklistTitle).toBeDefined();
+      expect(dict.travelAdvisoryTitle).toBeDefined();
+    });
+  });
+
+  it('should return valid shelter names in all three languages', () => {
+    const ids = ['sh-1', 'sh-2', 'sh-3', 'sh-4'];
+    const languages = ['English', 'Kannada', 'Hindi'];
+    
+    languages.forEach(lang => {
+      ids.forEach(id => {
+        const shelterInfo = TRANSLATIONS[lang].shelters[id];
+        expect(shelterInfo).toBeDefined();
+        expect(shelterInfo.name).toBeDefined();
+        expect(shelterInfo.shortName).toBeDefined();
+      });
+    });
+  });
+
+  it('should return valid translated pre-seeded hazards', () => {
+    const ids = ['haz-101', 'haz-102', 'haz-103', 'haz-104'];
+    const languages = ['English', 'Kannada', 'Hindi'];
+    
+    languages.forEach(lang => {
+      ids.forEach(id => {
+        const seedInfo = TRANSLATIONS[lang].seededHazards[id];
+        expect(seedInfo).toBeDefined();
+        expect(seedInfo.location).toBeDefined();
+        expect(seedInfo.description).toBeDefined();
+      });
+    });
+  });
+});
+
+describe('MonsoonGuard GenAI Travel Advisory Logic', () => {
+  it('should flag routes matching active hazard locations as warning status', async () => {
+    const activeHazards = [
+      { id: 'haz-101', type: 'Waterlogging', location: 'Outer Ring Road', severity: 'critical' }
+    ];
+    
+    const result = await generateTravelAdvisory({
+      origin: 'Outer Ring Road',
+      destination: 'MG Road',
+      hazardAlerts: activeHazards,
+      language: 'English'
+    });
+
+    expect(result.status).toBe('warning');
+    expect(result.title).toContain('Hazards Detected');
+  });
+
+  it('should declare routes safe when no active hazard matches path locations', async () => {
+    const activeHazards = [
+      { id: 'haz-101', type: 'Waterlogging', location: 'Koramangala', severity: 'low' }
+    ];
+    
+    const result = await generateTravelAdvisory({
+      origin: 'Indiranagar',
+      destination: 'MG Road',
+      hazardAlerts: activeHazards,
+      language: 'English'
+    });
+
+    expect(result.status).toBe('safe');
+    expect(result.title).toContain('Path Clear');
+  });
+});
+
+describe('MonsoonGuard GenAI Checklist Customizer Logic', () => {
+  it('should include pet items when hasPets is true', async () => {
+    const checklist = await generateSurvivalChecklist({
+      familySize: 3,
+      hasPets: true,
+      hasSpecialNeeds: false,
+      language: 'English'
+    });
+
+    // Check if at least one item relates to pet care/food
+    const hasPetItem = checklist.some(cat => 
+      cat.items.some(item => item.text.toLowerCase().includes('pet') || item.text.toLowerCase().includes('animal'))
+    );
+    expect(hasPetItem).toBe(true);
+  });
+
+  it('should include special medical needs when hasSpecialNeeds is true', async () => {
+    const checklist = await generateSurvivalChecklist({
+      familySize: 3,
+      hasPets: false,
+      hasSpecialNeeds: true,
+      language: 'English'
+    });
+
+    // Check if at least one item relates to medical/prescription needs
+    const hasMedItem = checklist.some(cat => 
+      cat.items.some(item => item.text.toLowerCase().includes('presc') || item.text.toLowerCase().includes('medic'))
+    );
+    expect(hasMedItem).toBe(true);
   });
 });

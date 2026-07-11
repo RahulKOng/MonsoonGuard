@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldAlert, MapPin, Clock, User, Filter } from 'lucide-react';
 import { collection, onSnapshot, getFirestore } from '../services/firebaseService';
+import { TRANSLATIONS } from '../services/translationService';
 
 export default function LiveHazardsList({ currentLanguage, lightMode, onHazardsUpdate }) {
   const [hazards, setHazards] = useState([]);
   const [filterSeverity, setFilterSeverity] = useState('all');
   const [filterType, setFilterType] = useState('all');
+
+  const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.English;
 
   useEffect(() => {
     const db = getFirestore();
@@ -67,14 +70,14 @@ export default function LiveHazardsList({ currentLanguage, lightMode, onHazardsU
           }`}
         >
           <ShieldAlert className="h-5 w-5 text-red-550" />
-          {currentLanguage === 'Kannada' ? 'ಲೈವ್ ನಾಗರಿಕ ವರದಿಗಳು' : currentLanguage === 'Hindi' ? 'लाइव नागरिक रिपोर्ट' : 'Live Community Hazard Feed'}
+          {t.liveCitizenReports}
         </h2>
         
         {/* Count Indicator */}
         <span className={`text-xs px-2 py-0.5 rounded self-start sm:self-center font-bold ${
           lightMode ? 'bg-red-50 text-red-750 border border-red-200' : 'bg-red-500/10 text-red-400 border border-red-500/20'
         }`}>
-          {filteredHazards.length} {currentLanguage === 'Kannada' ? 'ವರದಿಗಳು' : currentLanguage === 'Hindi' ? 'रिपोर्ट' : 'Active Reports'}
+          {filteredHazards.length} {t.activeReportsCount}
         </span>
       </div>
 
@@ -88,7 +91,7 @@ export default function LiveHazardsList({ currentLanguage, lightMode, onHazardsU
             className="flex items-center gap-1.5 text-xs text-slate-500 mb-1.5"
           >
             <Filter className="h-3 w-3" />
-            <span>Severity</span>
+            <span>{t.severityFilterLabel}</span>
           </label>
           <select
             id="severity-filter"
@@ -100,11 +103,11 @@ export default function LiveHazardsList({ currentLanguage, lightMode, onHazardsU
                 : 'bg-slate-800 border border-slate-700 text-slate-200'
             }`}
           >
-            <option value="all">All Severities</option>
-            <option value="critical">Critical Only</option>
-            <option value="high">High & Above</option>
-            <option value="medium">Medium & Above</option>
-            <option value="low">Low Only</option>
+            <option value="all">{t.allSeverities}</option>
+            <option value="critical">{t.criticalOnly}</option>
+            <option value="high">{t.highAndAbove}</option>
+            <option value="medium">{t.mediumAndAbove}</option>
+            <option value="low">{t.lowOnly}</option>
           </select>
         </div>
 
@@ -114,7 +117,7 @@ export default function LiveHazardsList({ currentLanguage, lightMode, onHazardsU
             className="flex items-center gap-1.5 text-xs text-slate-500 mb-1.5"
           >
             <Filter className="h-3 w-3" />
-            <span>Hazard Type</span>
+            <span>{t.typeFilterLabel}</span>
           </label>
           <select
             id="type-filter"
@@ -126,12 +129,12 @@ export default function LiveHazardsList({ currentLanguage, lightMode, onHazardsU
                 : 'bg-slate-800 border border-slate-700 text-slate-200'
             }`}
           >
-            <option value="all">All Types</option>
-            <option value="Waterlogging">Waterlogging</option>
-            <option value="Fallen Tree">Fallen Tree</option>
-            <option value="Damaged Road">Damaged Road</option>
-            <option value="Snapped Wire">Snapped Wire</option>
-            <option value="Other">Other</option>
+            <option value="all">{t.allTypes}</option>
+            <option value="Waterlogging">{t.hazardTypes.Waterlogging}</option>
+            <option value="Fallen Tree">{t.hazardTypes["Fallen Tree"]}</option>
+            <option value="Damaged Road">{t.hazardTypes["Damaged Road"]}</option>
+            <option value="Snapped Wire">{t.hazardTypes["Snapped Wire"]}</option>
+            <option value="Other">{t.hazardTypes.Other}</option>
           </select>
         </div>
       </div>
@@ -144,58 +147,60 @@ export default function LiveHazardsList({ currentLanguage, lightMode, onHazardsU
       >
         {filteredHazards.length === 0 ? (
           <div className="text-center py-8 text-slate-500 text-sm">
-            {currentLanguage === 'Kannada' 
-              ? 'ಯಾವುದೇ ವರದಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ.' 
-              : currentLanguage === 'Hindi' 
-              ? 'कोई रिपोर्ट नहीं मिली।' 
-              : 'No reports match selected filters.'}
+            {t.noReportsFound}
           </div>
         ) : (
-          filteredHazards.map((hazard) => (
-            <div 
-              key={hazard.id}
-              className={`p-4 rounded-xl border transition-all duration-300 ${
-                lightMode 
-                  ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-sm' 
-                  : 'bg-slate-850/60 hover:bg-slate-850 border-slate-800 hover:border-slate-700'
-              }`}
-            >
-              {/* Type & Severity Badge */}
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-sm font-bold ${lightMode ? 'text-slate-800' : 'text-slate-100'}`}>
-                  {hazard.type}
-                </span>
-                <span className={`text-xxs px-2 py-0.5 rounded font-bold uppercase tracking-wider ${getSeverityBadgeClass(hazard.severity)}`}>
-                  {hazard.severity}
-                </span>
-              </div>
+          filteredHazards.map((hazard) => {
+            // Get pre-seeded translations if available, else use user-reported values
+            const translatedLocation = t.seededHazards[hazard.id]?.location || hazard.location;
+            const translatedDescription = t.seededHazards[hazard.id]?.description || hazard.description;
 
-              {/* Description */}
-              <p className={`text-xs leading-relaxed mb-3 ${lightMode ? 'text-slate-600' : 'text-slate-300'}`}>
-                {hazard.description}
-              </p>
-
-              {/* Telemetry/Meta Row */}
-              <div className={`flex flex-wrap items-center justify-between gap-2 text-xxs border-t pt-2 ${
-                lightMode ? 'border-slate-100 text-slate-450' : 'border-slate-800/80 text-slate-400'
-              }`}>
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5 text-blue-500" />
-                  <span className={`font-semibold truncate max-w-[150px] ${lightMode ? 'text-slate-700' : 'text-slate-300'}`}>{hazard.location}</span>
+            return (
+              <div 
+                key={hazard.id}
+                className={`p-4 rounded-xl border transition-all duration-300 ${
+                  lightMode 
+                    ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-sm' 
+                    : 'bg-slate-850/60 hover:bg-slate-850 border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                {/* Type & Severity Badge */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-sm font-bold ${lightMode ? 'text-slate-800' : 'text-slate-100'}`}>
+                    {t.hazardTypes[hazard.type] || hazard.type}
+                  </span>
+                  <span className={`text-xxs px-2 py-0.5 rounded font-bold uppercase tracking-wider ${getSeverityBadgeClass(hazard.severity)}`}>
+                    {t.severities[hazard.severity] || hazard.severity}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-0.5">
-                    <User className="h-3 w-3" />
-                    <span>{hazard.reportedBy}</span>
+
+                {/* Description */}
+                <p className={`text-xs leading-relaxed mb-3 ${lightMode ? 'text-slate-650' : 'text-slate-350'}`}>
+                  {translatedDescription}
+                </p>
+
+                {/* Telemetry/Meta Row */}
+                <div className={`flex flex-wrap items-center justify-between gap-2 text-xxs border-t pt-2 ${
+                  lightMode ? 'border-slate-100 text-slate-450' : 'border-slate-800/80 text-slate-400'
+                }`}>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 text-blue-500" />
+                    <span className={`font-semibold truncate max-w-[150px] ${lightMode ? 'text-slate-700' : 'text-slate-300'}`}>{translatedLocation}</span>
                   </div>
-                  <div className="flex items-center gap-0.5">
-                    <Clock className="h-3 w-3" />
-                    <span>{new Date(hazard.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-0.5">
+                      <User className="h-3 w-3" />
+                      <span>{t.reportedBy} {hazard.reportedBy}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      <Clock className="h-3 w-3" />
+                      <span>{new Date(hazard.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </section>

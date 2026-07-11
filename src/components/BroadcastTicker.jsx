@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertOctagon, Phone } from 'lucide-react';
+import { TRANSLATIONS } from '../services/translationService';
 
 const EMERGENCY_BROADCASTS = {
   English: [
@@ -25,6 +26,7 @@ const EMERGENCY_BROADCASTS = {
 export default function BroadcastTicker({ currentLanguage, lightMode }) {
   const broadcasts = EMERGENCY_BROADCASTS[currentLanguage] || EMERGENCY_BROADCASTS.English;
   const [currentIndex, setCurrentIndex] = useState(0);
+  const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.English;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -37,7 +39,7 @@ export default function BroadcastTicker({ currentLanguage, lightMode }) {
     <div 
       className={`w-full py-2 px-4 transition-colors duration-300 flex items-center overflow-hidden border-b ${
         lightMode 
-          ? 'bg-red-50 border-red-200 text-red-800' 
+          ? 'bg-red-55 border-red-200 text-red-800' 
           : 'bg-red-950/85 border-red-900/50 text-red-100 backdrop-blur-sm'
       }`}
       role="region"
@@ -52,7 +54,7 @@ export default function BroadcastTicker({ currentLanguage, lightMode }) {
         <span className={`text-xs font-bold uppercase tracking-wider ${
           lightMode ? 'text-red-750' : 'text-red-400'
         }`}>
-          {currentLanguage === 'Kannada' ? 'ತುರ್ತು ಪ್ರಸಾರ' : currentLanguage === 'Hindi' ? 'आपातकालीन प्रसारण' : 'EMERGENCY'}
+          {t.emergencyLabel}
         </span>
       </div>
 
@@ -82,10 +84,10 @@ export default function BroadcastTicker({ currentLanguage, lightMode }) {
           href="tel:1912"
           className={`flex items-center space-x-1 py-1 px-2.5 rounded-full text-xs font-bold transition-all duration-300 ${
             lightMode
-              ? 'bg-red-600 hover:bg-red-700 text-white shadow'
+              ? 'bg-red-650 hover:bg-red-700 text-white shadow'
               : 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/30'
           }`}
-          aria-label="Call emergency hotline 1912"
+          aria-label={t.callHotline}
         >
           <Phone className="h-3.5 w-3.5" />
           <span className="hidden md:inline">1912</span>

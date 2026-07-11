@@ -1,20 +1,9 @@
 import React, { useState } from 'react';
 import { AlertCircle, CheckCircle, Send } from 'lucide-react';
 import { collection, addDoc, getFirestore } from '../services/firebaseService';
+import { TRANSLATIONS } from '../services/translationService';
 
-/**
- * Strict regex-based input validation and sanitization to prevent XSS attacks.
- * Filters HTML tags, javascript: schemes, and inline event handlers (onxxx=).
- */
-export function sanitizeInput(value) {
-  if (typeof value !== 'string') return '';
-  return value
-    .replace(/<[^>]*>/g, '')                  // Remove HTML tags
-    .replace(/javascript:/gi, '')            // Block javascript URL schemes
-    .replace(/on\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]*)/gi, '') // Strip inline event handlers like onclick="js"
-    .replace(/eval\((.*)\)/gi, '')           // Block eval calls
-    .trim();
-}
+import { sanitizeInput } from '../utils/utils';
 
 export default function HazardReporter({ currentLanguage, lightMode }) {
   const [formData, setFormData] = useState({
@@ -24,6 +13,8 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
     reportedBy: '',
     severity: 'medium'
   });
+
+  const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.English;
 
   const [errors, setErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error' | null
@@ -46,21 +37,21 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
     
     // Check for empty fields
     if (!formData.location.trim()) {
-      newErrors.location = currentLanguage === 'Kannada' ? 'ಸ್ಥಳ ಅಗತ್ಯವಿದೆ' : currentLanguage === 'Hindi' ? 'स्थान आवश्यक है' : 'Location is required';
+      newErrors.location = t.validationLocation;
     }
     if (!formData.description.trim()) {
-      newErrors.description = currentLanguage === 'Kannada' ? 'ವಿವರಣೆ ಅಗತ್ಯವಿದೆ' : currentLanguage === 'Hindi' ? 'विवरण आवश्यक है' : 'Description is required';
+      newErrors.description = t.validationDescription;
     }
     if (!formData.reportedBy.trim()) {
-      newErrors.reportedBy = currentLanguage === 'Kannada' ? 'ವರದಿಗಾರರ ಹೆಸರು ಅಗತ್ಯವಿದೆ' : currentLanguage === 'Hindi' ? 'रिपोर्टर का नाम आवश्यक है' : 'Reporter name is required';
+      newErrors.reportedBy = t.validationReporter;
     }
 
     // Additional length checking to prevent payload overflow
     if (formData.location.length > 150) {
-      newErrors.location = 'Location detail is too long (max 150 chars)';
+      newErrors.location = t.validationLocationTooLong;
     }
     if (formData.description.length > 500) {
-      newErrors.description = 'Description detail is too long (max 500 chars)';
+      newErrors.description = t.validationDescTooLong;
     }
 
     setErrors(newErrors);
@@ -125,8 +116,8 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
           lightMode ? 'text-slate-800' : 'text-slate-100'
         }`}
       >
-        <AlertCircle className="h-5 w-5 text-amber-500" />
-        {currentLanguage === 'Kannada' ? 'ಅಪಾಯ ವರದಿ ಮಾಡಿ' : currentLanguage === 'Hindi' ? 'खतरे की रिपोर्ट करें' : 'Report Active Hazard'}
+        <AlertCircle className="h-5 w-5 text-amber-550" />
+        {t.reportHazardTitle}
       </h2>
 
       {submitStatus === 'success' && (
@@ -140,11 +131,7 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
         >
           <CheckCircle className="h-4.5 w-4.5 flex-shrink-0" />
           <span>
-            {currentLanguage === 'Kannada' 
-              ? 'ಅಪಾಯವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ವರದಿ ಮಾಡಲಾಗಿದೆ. ಧನ್ಯವಾದಗಳು!' 
-              : currentLanguage === 'Hindi' 
-              ? 'खतरे की सफलतापूर्वक रिपोर्ट की गई है। धन्यवाद!' 
-              : 'Hazard report submitted successfully. Thank you for keeping communities safe!'}
+            {t.statusSuccess}
           </span>
         </div>
       )}
@@ -154,17 +141,13 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
           role="alert"
           className={`p-3 rounded-xl border flex items-center gap-2.5 mb-4 text-sm ${
             lightMode 
-              ? 'bg-red-50 border-red-200 text-red-800 font-medium' 
+              ? 'bg-red-55 border-red-200 text-red-800 font-medium' 
               : 'bg-red-500/10 border-red-500/20 text-red-400'
           }`}
         >
           <AlertCircle className="h-4.5 w-4.5 flex-shrink-0" />
           <span>
-            {currentLanguage === 'Kannada' 
-              ? 'ಸಲ್ಲಿಕೆ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ನಂತರ ಪ್ರಯತ್ನಿಸಿ.' 
-              : currentLanguage === 'Hindi' 
-              ? 'सबमिशन विफल रहा। कृपया बाद में पुनः प्रयास करें।' 
-              : 'Failed to submit report. Please review your internet connection and try again.'}
+            {t.statusError}
           </span>
         </div>
       )}
@@ -177,7 +160,7 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
               htmlFor="type-select" 
               className={`block text-xs font-semibold mb-1.5 ${lightMode ? 'text-slate-500' : 'text-slate-400'}`}
             >
-              {currentLanguage === 'Kannada' ? 'ಅಪಾಯದ ಪ್ರಕಾರ:' : currentLanguage === 'Hindi' ? 'खतरे का प्रकार:' : 'Hazard Type:'}
+              {t.labelHazardType}
             </label>
             <select
               id="type-select"
@@ -190,11 +173,11 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
                   : 'bg-slate-800 border border-slate-700 text-slate-200 focus:ring-2 focus:ring-blue-500'
               }`}
             >
-              <option value="Waterlogging">{currentLanguage === 'Kannada' ? 'ಜಲಾವೃತ (ನೀರು ತುಂಬಿರುವುದು)' : currentLanguage === 'Hindi' ? 'जलभराव' : 'Waterlogging'}</option>
-              <option value="Fallen Tree">{currentLanguage === 'Kannada' ? 'ಬಿದ್ದ ಮರ' : currentLanguage === 'Hindi' ? 'गिरा हुआ पेड़' : 'Fallen Tree'}</option>
-              <option value="Damaged Road">{currentLanguage === 'Kannada' ? 'ಹಾನಿಗೊಳಗಾದ ರಸ್ತೆ' : currentLanguage === 'Hindi' ? 'क्षतिग्रस्त सड़क' : 'Damaged Road'}</option>
-              <option value="Snapped Wire">{currentLanguage === 'Kannada' ? 'ತುಂಡಾದ ವಿದ್ಯುತ್ ತಂತಿ' : currentLanguage === 'Hindi' ? 'टूटा हुआ बिजली का तार' : 'Snapped Wire'}</option>
-              <option value="Other">{currentLanguage === 'Kannada' ? 'ಇತರೆ' : currentLanguage === 'Hindi' ? 'अन्य' : 'Other'}</option>
+              <option value="Waterlogging">{t.hazardTypes.Waterlogging}</option>
+              <option value="Fallen Tree">{t.hazardTypes["Fallen Tree"]}</option>
+              <option value="Damaged Road">{t.hazardTypes["Damaged Road"]}</option>
+              <option value="Snapped Wire">{t.hazardTypes["Snapped Wire"]}</option>
+              <option value="Other">{t.hazardTypes.Other}</option>
             </select>
           </div>
 
@@ -203,7 +186,7 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
               htmlFor="severity-select" 
               className={`block text-xs font-semibold mb-1.5 ${lightMode ? 'text-slate-500' : 'text-slate-400'}`}
             >
-              {currentLanguage === 'Kannada' ? 'ತೀವ್ರತೆ:' : currentLanguage === 'Hindi' ? 'तीव्रता:' : 'Severity Level:'}
+              {t.labelSeverityLevel}
             </label>
             <select
               id="severity-select"
@@ -216,10 +199,10 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
                   : 'bg-slate-800 border border-slate-700 text-slate-200 focus:ring-2 focus:ring-blue-500'
               }`}
             >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
+              <option value="low">{t.severities.low}</option>
+              <option value="medium">{t.severities.medium}</option>
+              <option value="high">{t.severities.high}</option>
+              <option value="critical">{t.severities.critical}</option>
             </select>
           </div>
         </div>
@@ -230,7 +213,7 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
             htmlFor="location-input" 
             className={`block text-xs font-semibold mb-1.5 ${lightMode ? 'text-slate-500' : 'text-slate-400'}`}
           >
-            {currentLanguage === 'Kannada' ? 'ನಿಖರವಾದ ಸ್ಥಳ:' : currentLanguage === 'Hindi' ? 'सटीक स्थान:' : 'Exact Location (Landmarks/Road Name):'}
+            {t.labelExactLocation}
           </label>
           <input
             type="text"
@@ -238,7 +221,7 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
             name="location"
             value={formData.location}
             onChange={handleChange}
-            placeholder={currentLanguage === 'Kannada' ? 'ಉದಾ: ಸಿಲ್ಕ್ ಬೋರ್ಡ್ ಜಂಕ್ಷನ್ ಬಳಿ' : currentLanguage === 'Hindi' ? 'जैसे: सिल्क बोर्ड जंक्शन के पास' : 'e.g. Near Silk Board junction outbound'}
+            placeholder={t.placeholderLocation}
             aria-invalid={!!errors.location}
             aria-describedby={errors.location ? "location-error" : undefined}
             className={`w-full text-sm rounded-lg p-2.5 focus:outline-none transition-all duration-300 ${
@@ -260,7 +243,7 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
             htmlFor="description-textarea" 
             className={`block text-xs font-semibold mb-1.5 ${lightMode ? 'text-slate-500' : 'text-slate-400'}`}
           >
-            {currentLanguage === 'Kannada' ? 'ಅಪಾಯದ ವಿವರಣೆ:' : currentLanguage === 'Hindi' ? 'खतरे का विवरण:' : 'Hazard Description / Current Situation:'}
+            {t.labelHazardDescription}
           </label>
           <textarea
             id="description-textarea"
@@ -268,7 +251,7 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
             rows="3"
             value={formData.description}
             onChange={handleChange}
-            placeholder={currentLanguage === 'Kannada' ? 'ಉದಾ: ರಸ್ತೆಯ ಮೇಲೆ ನೀರು 2 ಅಡಿ ನಿಂತಿದ್ದು ಸಣ್ಣ ವಾಹನಗಳಿಗೆ ಸಂಚಾರ ಕಷ್ಟವಾಗಿದೆ.' : currentLanguage === 'Hindi' ? 'जैसे: सड़क पर 2 फीट पानी भरा हुआ है जिससे छोटे वाहनों का निकलना मुश्किल है।' : 'e.g. Water is 2 feet deep on the road, small cars cannot pass.'}
+            placeholder={t.placeholderDescription}
             aria-invalid={!!errors.description}
             aria-describedby={errors.description ? "description-error" : undefined}
             className={`w-full text-sm rounded-lg p-2.5 focus:outline-none transition-all duration-300 ${
@@ -290,7 +273,7 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
             htmlFor="reportedBy-input" 
             className={`block text-xs font-semibold mb-1.5 ${lightMode ? 'text-slate-500' : 'text-slate-400'}`}
           >
-            {currentLanguage === 'Kannada' ? 'ನಿಮ್ಮ ಹೆಸರು:' : currentLanguage === 'Hindi' ? 'आपका नाम:' : 'Your Name / Identifier:'}
+            {t.labelYourName}
           </label>
           <input
             type="text"
@@ -326,8 +309,8 @@ export default function HazardReporter({ currentLanguage, lightMode }) {
         >
           <Send className="h-4 w-4" />
           {isSubmitting 
-            ? (currentLanguage === 'Kannada' ? 'ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...' : currentLanguage === 'Hindi' ? 'सबमिट किया जा रहा है...' : 'Submitting Report...') 
-            : (currentLanguage === 'Kannada' ? 'ವರದಿ ಸಲ್ಲಿಸಿ' : currentLanguage === 'Hindi' ? 'रिपोर्ट सबमिट करें' : 'Submit Safety Report')}
+            ? t.btnSubmitting 
+            : t.btnSubmitReport}
         </button>
       </form>
     </section>

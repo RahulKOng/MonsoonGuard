@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Map, Phone, Users, ShieldCheck, Compass } from 'lucide-react';
+import { Map, Phone, Users, Compass } from 'lucide-react';
+import { TRANSLATIONS } from '../services/translationService';
 
 const SHELTERS = [
   {
@@ -52,6 +53,16 @@ export default function RescueCentersMap({ currentLanguage, lightMode }) {
   const [selectedShelterId, setSelectedShelterId] = useState(SHELTERS[0].id);
 
   const selectedShelter = SHELTERS.find(s => s.id === selectedShelterId) || SHELTERS[0];
+  const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.English;
+  
+  const getShelterName = (id) => t.shelters[id]?.name || '';
+  const getShelterShortName = (id) => t.shelters[id]?.shortName || '';
+  const getShelterCoords = (id) => t.shelters[id]?.coords || '';
+
+  const getStatusText = (status) => {
+    if (status === 'Near Capacity') return t.nearCapacityStatus;
+    return t.openStatus;
+  };
 
   return (
     <section 
@@ -70,7 +81,7 @@ export default function RescueCentersMap({ currentLanguage, lightMode }) {
           }`}
         >
           <Map className="h-5 w-5 text-indigo-550" />
-          {currentLanguage === 'Kannada' ? 'ರಕ್ಷಣಾ ಕೇಂದ್ರಗಳು ಮತ್ತು ಆಶ್ರಯ ತಾಣಗಳು' : currentLanguage === 'Hindi' ? 'बचाव केंद्र और आश्रय स्थल' : 'Emergency Rescue Shelter Map'}
+          {t.shelterMapTitle}
         </h2>
       </div>
 
@@ -111,7 +122,7 @@ export default function RescueCentersMap({ currentLanguage, lightMode }) {
                   onClick={() => setSelectedShelterId(s.id)}
                   className="absolute group focus:outline-none"
                   style={{ left: `${s.gridX}px`, top: `${s.gridY}px` }}
-                  aria-label={`Shelter marker: ${s.name}`}
+                  aria-label={`Shelter marker: ${getShelterName(s.id)}`}
                 >
                   {/* Blinking outer ring */}
                   <span className={`absolute -inset-2.5 rounded-full opacity-75 animate-ping pointer-events-none ${
@@ -127,7 +138,7 @@ export default function RescueCentersMap({ currentLanguage, lightMode }) {
                         ? 'bg-blue-600 text-white border-blue-400 scale-125' 
                         : 'bg-indigo-600 text-white border-indigo-400 scale-125 shadow-lg shadow-indigo-500/50'
                       : lightMode
-                      ? 'bg-white text-slate-600 border-slate-350'
+                      ? 'bg-white text-slate-600 border-slate-355'
                       : 'bg-slate-800 text-slate-400 border-slate-700'
                   }`}>
                     <Compass className="h-3 w-3" />
@@ -135,14 +146,14 @@ export default function RescueCentersMap({ currentLanguage, lightMode }) {
 
                   {/* Tooltip */}
                   <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-800 text-[10px] py-0.5 px-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 text-white">
-                    {s.name.split(' ')[0]}
+                    {getShelterShortName(s.id)}
                   </div>
                 </button>
               );
             })}
           </div>
-          <span className={`text-[10px] mt-2 italic ${lightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            Click on the beacons on the map to inspect shelters dynamically.
+          <span className={`text-[10px] mt-2 italic ${lightMode ? 'text-slate-400' : 'text-slate-550'}`}>
+            {t.clickBeaconsHint}
           </span>
         </div>
 
@@ -152,7 +163,7 @@ export default function RescueCentersMap({ currentLanguage, lightMode }) {
             <h3 className={`text-sm font-bold border-b pb-2 ${
               lightMode ? 'text-slate-800 border-slate-200' : 'text-slate-200 border-slate-800'
             }`}>
-              Shelter Details
+              {t.shelterDetailsHeader}
             </h3>
 
             {/* List selector */}
@@ -174,13 +185,13 @@ export default function RescueCentersMap({ currentLanguage, lightMode }) {
                     }`}
                   >
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold truncate max-w-[170px]">{s.name.split(' Relief')[0].split(' Sports')[0]}</span>
+                      <span className="font-semibold truncate max-w-[170px]">{getShelterShortName(s.id)}</span>
                       <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${
                         s.status === 'Near Capacity' 
                           ? 'bg-amber-100 text-amber-800 border border-amber-250' 
                           : 'bg-emerald-100 text-emerald-800 border border-emerald-250'
                       }`}>
-                        {s.status}
+                        {getStatusText(s.status)}
                       </span>
                     </div>
                   </button>
@@ -193,16 +204,16 @@ export default function RescueCentersMap({ currentLanguage, lightMode }) {
               lightMode ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-slate-800/30 border-slate-800'
             }`}>
               <h4 className={`text-sm font-bold ${lightMode ? 'text-slate-800' : 'text-slate-100'}`}>
-                {selectedShelter.name}
+                {getShelterName(selectedShelter.id)}
               </h4>
-              <p className="text-xxs text-slate-400 italic">GPS: {selectedShelter.coords}</p>
+              <p className="text-xxs text-slate-400 italic">GPS: {getShelterCoords(selectedShelter.id)}</p>
 
               {/* Occupancy Rate indicator */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xxs font-semibold">
                   <span className="flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" />
-                    <span>Occupancy</span>
+                    <span>{t.occupancyLabel}</span>
                   </span>
                   <span>{selectedShelter.occupied} / {selectedShelter.capacity} ({Math.round(selectedShelter.occupied/selectedShelter.capacity * 100)}%)</span>
                 </div>
@@ -214,7 +225,7 @@ export default function RescueCentersMap({ currentLanguage, lightMode }) {
                   aria-valuenow={Math.round(selectedShelter.occupied/selectedShelter.capacity * 100)}
                   aria-valuemin="0"
                   aria-valuemax="100"
-                  aria-label={`${selectedShelter.name} shelter capacity`}
+                  aria-label={`${getShelterName(selectedShelter.id)} capacity`}
                 >
                   <div 
                     className={`h-full rounded-full transition-all duration-300 ${
@@ -237,7 +248,7 @@ export default function RescueCentersMap({ currentLanguage, lightMode }) {
                   aria-label={`Call shelter contact number at ${selectedShelter.phone}`}
                 >
                   <Phone className="h-3.5 w-3.5" />
-                  <span>Contact: {selectedShelter.phone}</span>
+                  <span>{t.contactLabel}: {selectedShelter.phone}</span>
                 </a>
               </div>
             </div>

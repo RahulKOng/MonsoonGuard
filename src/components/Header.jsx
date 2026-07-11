@@ -1,5 +1,6 @@
 import React from 'react';
-import { Shield, Eye, Languages, Sun, Moon } from 'lucide-react';
+import { Shield, Languages, Sun, Moon } from 'lucide-react';
+import { TRANSLATIONS } from '../services/translationService';
 
 export default function Header({ 
   currentLanguage, 
@@ -7,6 +8,8 @@ export default function Header({
   lightMode, 
   onThemeToggle 
 }) {
+  const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.English;
+
   return (
     <header className={`w-full border-b transition-all duration-300 ${
       lightMode 
@@ -20,7 +23,7 @@ export default function Header({
           <div className="flex items-center space-x-3">
             <div className={`p-2 rounded-xl transition-all duration-300 ${
               lightMode 
-                ? 'bg-blue-50 text-blue-650 ring-2 ring-blue-500/10' 
+                ? 'bg-blue-55 text-blue-650 ring-2 ring-blue-500/10' 
                 : 'bg-blue-600/20 text-blue-400 ring-2 ring-blue-500/20'
             }`}>
               <Shield className="h-6 sm:h-8 w-6 sm:w-8" aria-hidden="true" />
@@ -36,11 +39,7 @@ export default function Header({
               <p className={`text-xs transition-colors duration-300 ${
                 lightMode ? 'text-slate-500' : 'text-slate-400'
               }`}>
-                {currentLanguage === 'Kannada' 
-                  ? 'ಲೈವ್ ವಿಪತ್ತು ಸನ್ನದ್ಧತೆ ಮತ್ತು ನಾಗರಿಕ ಸಹಾಯ' 
-                  : currentLanguage === 'Hindi' 
-                  ? 'लाइव आपदा तैयारी और नागरिक सहायता' 
-                  : 'Live Disaster Preparedness & Citizen Assistance'}
+                {t.appSubTitle}
               </p>
             </div>
           </div>
@@ -77,11 +76,7 @@ export default function Header({
                   ? "Switch to dark theme" 
                   : "Switch to light theme"
               }
-              title={
-                lightMode 
-                  ? "Dark Theme" 
-                  : "Light Theme"
-              }
+              title={t.toggleTheme}
               className={`flex items-center justify-center p-2 rounded-lg transition-all duration-300 ${
                 lightMode 
                   ? 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-300' 
@@ -93,7 +88,7 @@ export default function Header({
               ) : (
                 <Sun className="h-5 w-5" />
               )}
-              <span className="sr-only">Toggle Theme</span>
+              <span className="sr-only">{t.toggleTheme}</span>
             </button>
 
           </div>

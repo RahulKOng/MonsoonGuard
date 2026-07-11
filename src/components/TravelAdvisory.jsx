@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Compass, Navigation, AlertTriangle, CheckCircle, Search, Loader, MapPin } from 'lucide-react';
 import { generateTravelAdvisory } from '../services/geminiService';
+import { TRANSLATIONS } from '../services/translationService';
 
 export default function TravelAdvisory({ currentLanguage, lightMode, activeHazards = [] }) {
   const [origin, setOrigin] = useState('Outer Ring Road');
   const [destination, setDestination] = useState('MG Road');
   const [advisory, setAdvisory] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.English;
 
   const handleQuery = async (e) => {
     e.preventDefault();
@@ -31,8 +34,8 @@ export default function TravelAdvisory({ currentLanguage, lightMode, activeHazar
   const getAdvisoryColorClass = (status) => {
     if (lightMode) {
       return status === 'warning'
-        ? 'bg-red-50 border border-red-200 text-red-800'
-        : 'bg-emerald-50 border border-emerald-200 text-emerald-800';
+        ? 'bg-red-55 border border-red-200 text-red-800'
+        : 'bg-emerald-55 border border-emerald-200 text-emerald-800';
     }
     return status === 'warning'
       ? 'bg-red-500/10 border border-red-500/20 text-red-400'
@@ -56,7 +59,7 @@ export default function TravelAdvisory({ currentLanguage, lightMode, activeHazar
           }`}
         >
           <Compass className="h-5 w-5 text-teal-555" />
-          {currentLanguage === 'Kannada' ? 'ಲೈವ್ ಪ್ರಯಾಣ ಸಲಹೆ ಮತ್ತು ಸುರಕ್ಷತೆ' : currentLanguage === 'Hindi' ? 'लाइव यात्रा सलाह और सुरक्षा' : 'GenAI Travel Advisory'}
+          {t.travelAdvisoryTitle}
         </h2>
       </div>
 
@@ -69,7 +72,7 @@ export default function TravelAdvisory({ currentLanguage, lightMode, activeHazar
               htmlFor="origin-input" 
               className={`block text-xs font-semibold mb-1 ${lightMode ? 'text-slate-500' : 'text-slate-400'}`}
             >
-              {currentLanguage === 'Kannada' ? 'ಪ್ರಾರಂಭದ ಸ್ಥಳ:' : currentLanguage === 'Hindi' ? 'प्रस्थान स्थान:' : 'Start Location:'}
+              {t.startLocationLabel}
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -83,7 +86,7 @@ export default function TravelAdvisory({ currentLanguage, lightMode, activeHazar
                 placeholder="e.g. Koramangala"
                 className={`w-full text-xs rounded-lg pl-9 pr-3 py-2 focus:outline-none transition-all duration-300 ${
                   lightMode 
-                    ? 'bg-white border border-slate-350 text-slate-800 focus:ring-2 focus:ring-blue-600' 
+                    ? 'bg-white border border-slate-355 text-slate-800 focus:ring-2 focus:ring-blue-600' 
                     : 'bg-slate-800 border border-slate-700 text-slate-200 focus:ring-2 focus:ring-blue-500'
                 }`}
               />
@@ -96,7 +99,7 @@ export default function TravelAdvisory({ currentLanguage, lightMode, activeHazar
               htmlFor="destination-input" 
               className={`block text-xs font-semibold mb-1 ${lightMode ? 'text-slate-500' : 'text-slate-400'}`}
             >
-              {currentLanguage === 'Kannada' ? 'ತಲುಪುವ ಸ್ಥಳ:' : currentLanguage === 'Hindi' ? 'गंतव्य स्थान:' : 'Destination Location:'}
+              {t.destLocationLabel}
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -110,7 +113,7 @@ export default function TravelAdvisory({ currentLanguage, lightMode, activeHazar
                 placeholder="e.g. MG Road"
                 className={`w-full text-xs rounded-lg pl-9 pr-3 py-2 focus:outline-none transition-all duration-300 ${
                   lightMode 
-                    ? 'bg-white border border-slate-350 text-slate-800 focus:ring-2 focus:ring-blue-600' 
+                    ? 'bg-white border border-slate-355 text-slate-800 focus:ring-2 focus:ring-blue-600' 
                     : 'bg-slate-800 border border-slate-700 text-slate-200 focus:ring-2 focus:ring-blue-500'
                 }`}
               />
@@ -131,12 +134,12 @@ export default function TravelAdvisory({ currentLanguage, lightMode, activeHazar
           {loading ? (
             <>
               <Loader className="h-3.5 w-3.5 animate-spin" />
-              <span>{currentLanguage === 'Kannada' ? 'ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...' : currentLanguage === 'Hindi' ? 'ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...' : 'Analyzing Safety...'}</span>
+              <span>{t.advisoryAnalyzing}</span>
             </>
           ) : (
             <>
               <Search className="h-3.5 w-3.5" />
-              <span>{currentLanguage === 'Kannada' ? 'ಮಾರ್ಗದ ಸುರಕ್ಷತೆ ಪರಿಶೀಲಿಸಿ' : currentLanguage === 'Hindi' ? 'मार्ग सुरक्षा की जांच करें' : 'Check Route Safety'}</span>
+              <span>{t.btnCheckSafety}</span>
             </>
           )}
         </button>
@@ -162,7 +165,7 @@ export default function TravelAdvisory({ currentLanguage, lightMode, activeHazar
                 </span>
               </div>
               <p className="text-xs font-semibold leading-relaxed">
-                Recommendation: {advisory.recommendation}
+                {t.recommendationLabel} {advisory.recommendation}
               </p>
               <p className="text-xxs leading-relaxed opacity-85">
                 {advisory.details}
@@ -176,11 +179,7 @@ export default function TravelAdvisory({ currentLanguage, lightMode, activeHazar
             ? 'text-slate-400 border-slate-200 bg-slate-50' 
             : 'text-slate-500 border-slate-800'
         }`}>
-          {currentLanguage === 'Kannada' 
-            ? 'ಪ್ರಯಾಣದ ಎಚ್ಚರಿಕೆಗಳನ್ನು ನೋಡಲು ನಿಮ್ಮ ಮಾರ್ಗವನ್ನು ನಮೂದಿಸಿ ಮತ್ತು ಹುಡುಕಿ.' 
-            : currentLanguage === 'Hindi' 
-            ? 'यात्रा सलाह देखने के लिए अपना मार्ग दर्ज करें और खोजें।' 
-            : 'Enter route details above to generate AI-powered travel advisories.'}
+          {t.placeholderAdvisoryHint}
         </div>
       )}
     </section>

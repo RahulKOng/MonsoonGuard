@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { CloudRain, Compass, Thermometer, Droplets, AlertTriangle } from 'lucide-react';
+import { CloudRain, Thermometer, Droplets, AlertTriangle } from 'lucide-react';
+import { TRANSLATIONS } from '../services/translationService';
 
 const FLOOD_STATIONS = {
   English: [
@@ -27,6 +28,7 @@ export default function WeatherFloodMeter({ currentLanguage, lightMode }) {
   const [selectedStationId, setSelectedStationId] = useState(stations[0].id);
 
   const selectedStation = stations.find(s => s.id === selectedStationId) || stations[0];
+  const t = TRANSLATIONS[currentLanguage] || TRANSLATIONS.English;
 
   const getStatusColor = (status) => {
     if (lightMode) {
@@ -67,12 +69,12 @@ export default function WeatherFloodMeter({ currentLanguage, lightMode }) {
           }`}
         >
           <CloudRain className="h-5 w-5 text-blue-550" />
-          {currentLanguage === 'Kannada' ? 'ಲೈವ್ ಹವಾಮಾನ ಮತ್ತು ಪ್ರವಾಹ ಮಾಪಕ' : currentLanguage === 'Hindi' ? 'लाइव मौसम और बाढ़ मीटर' : 'Live Weather & Flood Telemetry'}
+          {t.weatherFloodTitle}
         </h2>
         <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
           lightMode ? 'bg-blue-50 text-blue-650 border border-blue-100' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
         }`}>
-          {currentLanguage === 'Kannada' ? 'ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ: ಲೈವ್' : currentLanguage === 'Hindi' ? 'अपडेट किया गया: लाइव' : 'Status: Live Sync'}
+          {t.statusLive}
         </span>
       </div>
 
@@ -83,7 +85,7 @@ export default function WeatherFloodMeter({ currentLanguage, lightMode }) {
         }`}>
           <div className="flex items-center gap-2 text-slate-455 text-xs mb-1">
             <Droplets className="h-4 w-4 text-blue-500" />
-            <span>{currentLanguage === 'Kannada' ? 'ಇಂದಿನ ಮಳೆ' : currentLanguage === 'Hindi' ? 'आज की बारिश' : 'Rainfall Today'}</span>
+            <span>{t.rainfallToday}</span>
           </div>
           <div className="text-xl font-bold">
             78.4 <span className="text-xs text-slate-400">mm</span>
@@ -95,7 +97,7 @@ export default function WeatherFloodMeter({ currentLanguage, lightMode }) {
         }`}>
           <div className="flex items-center gap-2 text-slate-455 text-xs mb-1">
             <Thermometer className="h-4 w-4 text-amber-500" />
-            <span>{currentLanguage === 'Kannada' ? 'ತಾಪಮಾನ' : currentLanguage === 'Hindi' ? 'तापमान' : 'Temperature'}</span>
+            <span>{t.temperature}</span>
           </div>
           <div className="text-xl font-bold">
             23.5 <span className="text-xs text-slate-400">°C</span>
@@ -109,7 +111,7 @@ export default function WeatherFloodMeter({ currentLanguage, lightMode }) {
           htmlFor="station-selector" 
           className={`block text-xs font-semibold mb-2 ${lightMode ? 'text-slate-500' : 'text-slate-400'}`}
         >
-          {currentLanguage === 'Kannada' ? 'ವೀಕ್ಷಣಾ ಕೇಂದ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ:' : currentLanguage === 'Hindi' ? 'निगरानी स्टेशन चुनें:' : 'Select Telemetry Station:'}
+          {t.selectStation}
         </label>
         <select
           id="station-selector"
@@ -143,14 +145,14 @@ export default function WeatherFloodMeter({ currentLanguage, lightMode }) {
             </p>
           </div>
           <span className={`text-xs px-2 py-0.5 rounded font-semibold uppercase ${getStatusColor(selectedStation.status)}`}>
-            {selectedStation.status}
+            {t.statusValues[selectedStation.status] || selectedStation.status}
           </span>
         </div>
 
         {/* Gauge Visualizer */}
         <div className="space-y-2 mt-4">
           <div className="flex justify-between text-xs font-medium">
-            <span>Water Level</span>
+            <span>{t.waterLevel}</span>
             <span>{selectedStation.currentVal}m / {selectedStation.maxLevel}m ({selectedStation.level}%)</span>
           </div>
           <div 
@@ -178,11 +180,7 @@ export default function WeatherFloodMeter({ currentLanguage, lightMode }) {
           }`}>
             <AlertTriangle className="h-4 w-4 flex-shrink-0 animate-bounce" />
             <span>
-              {currentLanguage === 'Kannada' 
-                ? 'ಪ್ರವಾಹ ಮಟ್ಟವು ಅಪಾಯಕಾರಿ ಮಿತಿಯನ್ನು ಮೀರಿದೆ. ಸುತ್ತಮುತ್ತಲಿನ ನಿವಾಸಿಗಳು ತಕ್ಷಣ ಎಚ್ಚೆತ್ತುಕೊಳ್ಳಿ.' 
-                : currentLanguage === 'Hindi' 
-                ? 'बाढ़ का स्तर खतरनाक सीमा को पार गया है। आस-पास के निवासी सतर्क रहें।' 
-                : 'Water levels exceed safety buffer. Evacuation warnings active for nearby low-lying areas.'}
+              {t.floodExceededWarning}
             </span>
           </div>
         )}
