@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/* Import Premium Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* Color Variables Configuration */
+:root {
+  /* Default Dark Theme variables */
+  --bg-color: #030712;
+  --text-color: #f3f4f6;
+  --text-muted: #9ca3af;
+  
+  --card-bg: rgba(17, 24, 39, 0.45);
+  --card-border: rgba(255, 255, 255, 0.06);
+  --card-hover-border: rgba(255, 255, 255, 0.12);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  --card-hover-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+  
+  --input-bg: #1f2937;
+  --input-border: #374151;
+  --input-text: #f3f4f6;
+
+  --accent-blue: #3b82f6;
+  --accent-teal: #14b8a6;
+  --accent-red: #ef4444;
+  --accent-amber: #f59e0b;
+}
+
+.light {
+  /* Light Theme variables */
+  --bg-color: #f8fafc;
+  --text-color: #0f172a;
+  --text-muted: #475569;
+  
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(15, 23, 42, 0.08);
+  --card-hover-border: rgba(15, 23, 42, 0.15);
+  --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  --card-hover-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+  
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-text: #0f172a;
+
+  --accent-blue: #2563eb;
+  --accent-teal: #0d9488;
+  --accent-red: #dc2626;
+  --accent-amber: #d97706;
+}
+
+/* Base Styles & Aesthetic Application */
+html, body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Plus Jakarta Sans', 'Outfit', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-x: hidden;
+}
+
+/* Adaptive Ambient Glow */
+body::before {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: -20%;
+  width: 140%;
+  height: 140%;
+  background: radial-gradient(circle at 10% 20%, rgba(30, 41, 59, 0.15) 0%, rgba(15, 23, 42, 0) 60%),
+              radial-gradient(circle at 90% 80%, rgba(17, 24, 39, 0.12) 0%, rgba(3, 7, 18, 0) 60%);
+  z-index: -10;
+  pointer-events: none;
+}
+
+.light body::before {
+  background: radial-gradient(circle at 10% 20%, rgba(186, 230, 253, 0.4) 0%, rgba(255, 255, 255, 0) 60%),
+              radial-gradient(circle at 90% 80%, rgba(204, 251, 241, 0.3) 0%, rgba(255, 255, 255, 0) 60%);
+}
+
+/* Glassmorphism Card Style applying variables */
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: var(--card-hover-border);
+  transform: translateY(-2px);
+  box-shadow: var(--card-hover-shadow);
+}
+
+/* Form input adaptations */
+input, select, textarea {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--input-text) !important;
+  transition: all 0.2s ease;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(3, 7, 18, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.15);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.3);
+}
+
+/* Blinking Beacon Dot animation */
+@keyframes beacon-ping {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.custom-beacon-ping {
+  animation: beacon-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
